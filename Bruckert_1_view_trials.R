@@ -92,8 +92,15 @@ for (mysub in startdata:enddata){
   norigmarkers = length(origmarkerlist)
   markerlist<-origmarkerlist
   
-  if (origmarkerlist[norigmarkers] > (mylen - epochend_index)) #If there is not a whole epoch of time after the final marker
+  #If there is not a whole epoch of time after the final marker, add a comment
+  if (origmarkerlist[norigmarkers] > (mylen - epochend_index)) 
   {myaddcomment<-paste('. Short last epoch in run')
+  mycomment<-paste(mycomment,myaddcomment)
+  } # indicates if there is a short last epoch; this may need disposing of
+  
+  #If there is not a whole baseline of time before the first marker, add a comment
+  if ((origmarkerlist[1] + epochstart_index) < 0) 
+  {myaddcomment<-paste('. Short first epoch in run')
   mycomment<-paste(mycomment,myaddcomment)
   } # indicates if there is a short last epoch; this may need disposing of
   
@@ -144,7 +151,7 @@ for (mysub in startdata:enddata){
     
     # If recording started late, the start of the epoch for trial 1 will be beyond the recorded range. 
     # If this doesn't affect the baseline period (ie, results will be unaffected), then replace with mean
-    if (index1 < 0 & markerlist[mym]+baselinestart_index > 0){
+    if (index1 < 0 & (markerlist[mym]+baselinestart_index) < 0){
       cat("Recording started late. Padding start with zeros", "\n")
       replacement_mean_left = mean(rawdata[0:index2,2]) # Left hemisphere mean
       replacement_mean_right = mean(rawdata[0:index2,3]) # Right hemisphere mean
@@ -177,6 +184,7 @@ for (mysub in startdata:enddata){
     abline(v=baselineend_time, col='green')
     abline(v=poistart_time, col='purple')
     abline(v=poiend_time, col='purple')
+    text(epochstart_time, max(myepoched), pos=4, mycomment)
     
     mytitle=paste(mydatafile, 'Trial:', mym)
     title(mytitle)
