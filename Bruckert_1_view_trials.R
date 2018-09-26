@@ -126,7 +126,7 @@ for (mysub in startdata:enddata){
   nmarkers = length(markerlist)
   
   # Echo comment
-  mycomment
+  cat(mycomment)
   
   
   #----------------------------------------------------------
@@ -135,7 +135,7 @@ for (mysub in startdata:enddata){
   #-----------------------------------------------------------
   # myepoched will be the full epoched trial
   myepoched <- array(0, dim=c(nmarkers, epochend_index - epochstart_index +1,2)) # Set up an empty matrix
-  myinclude <- matrix(data=NA, nrow=nmarkers)
+  myinclude <- matrix(data=NA, nrow=trialsperrun)
   
   for(mym in 1:nmarkers) # for trials
   { 
