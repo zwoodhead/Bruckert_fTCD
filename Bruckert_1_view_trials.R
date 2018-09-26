@@ -47,7 +47,7 @@ enddata <- as.integer(readline(prompt='End at participant: '))
 
 for (mysub in startdata:enddata){ 
   mydatafile <- datafiles[mysub]
-  mycomment <- vector()
+  mycomment <- "Comment: "
   
   # Read exp data
   mydata<-read.table(paste0(datadir,mydatafile), skip = 6,  header =FALSE, sep ='\t')
@@ -184,7 +184,7 @@ for (mysub in startdata:enddata){
     abline(v=baselineend_time, col='green')
     abline(v=poistart_time, col='purple')
     abline(v=poiend_time, col='purple')
-    text(epochstart_time, max(myepoched), pos=4, mycomment)
+    text(epochstart_time, max(myplotbit), pos=4, mycomment)
     
     mytitle=paste(mydatafile, 'Trial:', mym)
     title(mytitle)
