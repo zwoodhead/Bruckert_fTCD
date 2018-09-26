@@ -42,8 +42,10 @@ colnames(all_trials_inclusions) <- datafiles
 ########################################################
 # Start loop through datafiles
 
+startdata <- as.integer(readline(prompt="Start from participant: "))
+enddata <- as.integer(readline(prompt='End at participant: '))
 
-for (mysub in 1:nfiles){ 
+for (mysub in startdata:enddata){ 
   mydatafile <- datafiles[mysub]
   mycomment <- vector()
   
