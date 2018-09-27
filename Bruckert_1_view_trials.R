@@ -9,20 +9,27 @@
 require(dplyr)
 
 ########################################################
+# Specify task
+task_switch <- as.integer(readline(prompt='Which task? 1=WordGen, 2=PPTT: '))
+task <- 'WordGen'
+if (task_switch == 2){ task <- 'PPTT' }
+
 # Specify directory and other variable parameters
 rootdir <- "H:/github/Bruckert_fTCD/"
-datadir <- paste0(rootdir,'Bruckert_Chpt4_fTCD_WordGen_rawdata/')
+datadir <- paste0(rootdir,'Bruckert_Chpt4_fTCD_',task,'_rawdata/')
 
 datafiles <- list.files(datadir)
 nfiles <- length(datafiles)
 
 # Timings in seconds
-epochstart_time <- -10
+intertrial_interval <- 50 # Should be 50 seconds between each marker
+epochstart_time <- -12
 epochend_time <- 30   # Previously called postmarker
 baselinestart_time <- -10
 baselineend_time <- 0
 poistart_time <- 8
 poiend_time <- 20
+if (task_switch == 2){ poiend_time <- 25 }
 
 # Timings in samples
 samplingrate=25
@@ -36,7 +43,7 @@ poiend_index <- poiend_time * samplingrate
 trialsperrun=23
 
 # Read in existing inclusion data
-all_trials_inclusions <- read.csv('Bruckert_wordgen_trial_inclusion.csv')
+all_trials_inclusions <- read.csv(paste0('Bruckert_',task,'_trial_inclusion.csv'))
 colnames(all_trials_inclusions) <- datafiles
 
 ########################################################
@@ -125,7 +132,7 @@ for (mysub in startdata:enddata){
   # Ignore first and last values since these are arbitrary; other intervals should be around 30s 
   # but may be longer if recording interrupted. Shorter intervals indicate there have been spurious 
   # markers which will need dealing with
-  if(min(intervals<48))
+  if(min(intervals<(intertrial_interval - 1)))
   {myaddcomment<-paste('. Possible spurious markers')
   mycomment<-paste(mycomment,myaddcomment)
   }
@@ -151,8 +158,19 @@ for (mysub in startdata:enddata){
     
     # If recording started late, the start of the epoch for trial 1 will be beyond the recorded range. 
     # If this doesn't affect the baseline period (ie, results will be unaffected), then replace with mean
+    # and keep the trial
+    if (index1 < 0 & (markerlist[mym]+baselinestart_index) > 0){
+      cat("Recording started late, but before baseline. Padding start with mean", "\n")
+      replacement_mean_left = mean(rawdata[0:index2,2]) # Left hemisphere mean
+      replacement_mean_right = mean(rawdata[0:index2,3]) # Right hemisphere mean
+      myepoched[mym, ,1] = c(rep(replacement_mean_left,index1*-1+1),rawdata[0:index2,2])
+      myepoched[mym, ,2] = c(rep(replacement_mean_right,index1*-1+1),rawdata[0:index2,3])
+    }
+    
+    # If recording started later than the start of the baseline period the trial should
+    # be discarded
     if (index1 < 0 & (markerlist[mym]+baselinestart_index) < 0){
-      cat("Recording started late. Padding start with zeros", "\n")
+      cat("Recording started too late. Discard this trial", "\n")
       replacement_mean_left = mean(rawdata[0:index2,2]) # Left hemisphere mean
       replacement_mean_right = mean(rawdata[0:index2,3]) # Right hemisphere mean
       myepoched[mym, ,1] = c(rep(replacement_mean_left,index1*-1+1),rawdata[0:index2,2])
@@ -214,5 +232,5 @@ for (mysub in startdata:enddata){
 } #next subject
   
 #Print trial inclusion file
-write.csv(all_trials_inclusions, 'Bruckert_wordgen_trial_inclusion.csv', row.names=FALSE)
+write.csv(all_trials_inclusions, paste0('Bruckert_',task,'_trial_inclusion.csv'), row.names=FALSE)
   
