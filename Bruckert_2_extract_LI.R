@@ -1,8 +1,9 @@
 #########################################################################################
-# A2 Script 1: Doppler Analysis
+# Bruckert Script 2: Extract LI
 #########################################################################################
-# This script reads in data from two sessions (1-2) from 6 tasks (A-F) and calcuates 
-# LI values
+# Run this script after running Bruckert Script 1, which identifies trials with artifacts.
+# Script 2 reads in all data from one task (WordGen or PPTT, excluding artifact trials) 
+# and calcuates LI values
 
 ########################################################
 # Install packages
@@ -15,7 +16,7 @@ task_switch <- as.integer(readline(prompt='Which task? 1=WordGen, 2=PPTT: '))
 task <- 'WordGen'
 
 trialsperrun=23
-min_trials <- 20
+min_trials <- 18
 
 if (task_switch == 2){ 
   task <- 'PPTT' 
