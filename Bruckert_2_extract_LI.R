@@ -35,6 +35,9 @@ initialdatacheck4=1; # set to 1 to plot AND SAVE average for each subject
 
 # Timings in seconds
 intertrial_interval <- 50 # Should be 50 seconds between each marker
+if (task_switch == 2)
+{ intertrial_interval <- 45}
+
 epochstart_time <- -12
 epochend_time <- 30   # Previously called postmarker
 baselinestart_time <- -10
