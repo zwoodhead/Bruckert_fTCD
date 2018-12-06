@@ -18,18 +18,22 @@ if (task_switch == 2){ task <- 'PPTT' }
 rootdir <- "H:/github/Bruckert_fTCD/"
 datadir <- paste0(rootdir,'Bruckert_Chpt4_fTCD_',task,'_rawdata/')
 
-datafiles <- list.files(datadir)
+datafiles <- list.files(datadir, pattern='*.exp')
 nfiles <- length(datafiles)
 
 # Timings in seconds
-intertrial_interval <- 50 # Should be 50 seconds between each marker
+intertrial_interval <- 50 # Should be 50 seconds between each marker for wordgen
+if (task_switch == 2)
+{ intertrial_interval <- 45}
+
 epochstart_time <- -12
 epochend_time <- 30   # Previously called postmarker
 baselinestart_time <- -10
 baselineend_time <- 0
 poistart_time <- 8
 poiend_time <- 20
-if (task_switch == 2){ poiend_time <- 25 }
+if (task_switch == 2)
+  { poiend_time <- 25}
 
 # Timings in samples
 samplingrate=25
@@ -41,6 +45,8 @@ poistart_index <- poistart_time * samplingrate
 poiend_index <- poiend_time * samplingrate
 
 trialsperrun=23
+if (task_switch == 2)
+  { trialsperrun = 15}
 
 # Read in existing inclusion data
 all_trials_inclusions <- read.csv(paste0('Bruckert_',task,'_trial_inclusion.csv'))
