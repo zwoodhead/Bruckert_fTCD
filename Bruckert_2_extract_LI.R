@@ -31,7 +31,7 @@ resultsfile <- paste0(rootdir,'Bruckert_',task,"_results.csv") # File lists anal
 initialdatacheck1=0; # set to 1 to view epochs after normalisation
 initialdatacheck2=0; #set to 1 to view epochs after heartbeat Correction
 initialdatacheck3=0; # set to 1 to visualise after baseline correction
-initialdatacheck4=1; # set to 1 to plot AND SAVE average for each subject
+initialdatacheck4=0; # set to 1 to plot AND SAVE average for each subject
 
 # Timings in seconds
 intertrial_interval <- 50 # Should be 50 seconds between each marker
@@ -68,17 +68,17 @@ interpolatebad=2  #set to 2 to replace brief dropout/spiking with mean value for
 ########################################################
 # Specify subject (mysubname)
 
-# Read in existing inclusion data and identify datafiles with enough good trials (> 20 for wordgen, > 12 for PPTT)
+# Read in existing inclusion data and identify datafiles with enough good trials (> 18 for wordgen, > 12 for PPTT)
 all_trials_inclusions <- read.csv(paste0(rootdir,'Bruckert_',task,'_trial_inclusion.csv'))
 datafiles <- substr(colnames(all_trials_inclusions), 2, 100) # List of all datafile names
 
-all_trials_sum <- colSums(all_trials_inclusions) # Counts number of included trials per dataset
+all_trials_sum <- colSums(all_trials_inclusions, na.rm = 'TRUE') # Counts number of included trials per dataset
 
 to_run <- which(all_trials_sum >= min_trials)
 
-results <- read.csv(resultsfile)
+results <- read.csv(resultsfile, stringsAsFactors = FALSE)
 
-for (mysub in 1:3){  #c(1:length(to_run))){ 
+for (mysub in (1:length(to_run))){ 
   
   mydatafile <- datafiles[to_run[mysub]]
   mysubname <- substr(mydatafile,1,nchar(mydatafile)-4) # Remove the .exp from the file name
@@ -116,7 +116,7 @@ for (mysub in 1:3){  #c(1:length(to_run))){
   #Now find markers; place where 'marker' column goes from low to high value
   #-----------------------------------------------------------
   mylen = nrow(rawdata); # Number of timepoints in filtered data (rawdata)
-  markerplus = c(0 ,rawdata$marker); # create vectors with offset of one
+  markerplus = c(rawdata$marker[1] ,rawdata$marker); # create vectors with offset of one
   markerchan = c(rawdata$marker,0); 
   markersub = markerchan - markerplus; # start of marker indicated by large difference between consecutive data points
   meanmarker <- mean(rawdata$marker) # We will identify big changes in marker value that are > 5 sds
@@ -130,16 +130,10 @@ for (mysub in 1:3){  #c(1:length(to_run))){
   {myaddcomment<-paste('. Short last epoch in run')
   mycomment<-paste(mycomment,myaddcomment)
   } # indicates if there is a short last epoch; this may need disposing of
-  
-  #If there is not a whole baseline of time before the first marker, add a comment
-  if ((origmarkerlist[1] + epochstart_index) < 0) 
-  {myaddcomment<-paste('. Short first epoch in run')
-  mycomment<-paste(mycomment,myaddcomment)
-  } # indicates if there is a short last epoch; this may need disposing of
-  
+
   # Check whether the number of markers matches the expected number of trials
   excessmarkers=norigmarkers-trialsperrun
-  
+
   # If there are too few epochs, comment on this
   if (excessmarkers<0)
   {mycomment<-paste(mycomment,'. Fewer markers than expected')
@@ -147,10 +141,16 @@ for (mysub in 1:3){  #c(1:length(to_run))){
   
   # If thre are too many epochs, ignore the first one(s)
   if(excessmarkers>0)
-  {myaddcomment<-paste(excessmarkers,'. Unexpected markers found in run 1, investigate')
+  {myaddcomment<-paste(excessmarkers,'. unexpected markers found in run 1, investigate')
   mycomment<-paste(mycomment, myaddcomment)
   markerlist<-origmarkerlist[(excessmarkers+1):(length(origmarkerlist))]
   }
+  
+  #If there is not a whole baseline of time before the first marker, add a comment
+  if ((markerlist[1] + epochstart_index) < 0) 
+  {myaddcomment<-paste('. Short first epoch in run')
+  mycomment<-paste(mycomment,myaddcomment)
+  } # indicates if there is a short last epoch; this may need disposing of
   
   # Check that markers are at least 48s apart
   intervals=c(rawdata$sec[markerlist],10000)-c(0,rawdata$sec[markerlist])
@@ -173,8 +173,10 @@ for (mysub in 1:3){  #c(1:length(to_run))){
   myinclude = all_trials_inclusions[ ,to_run[mysub]]
 
   myremove = which(myinclude==0) # excluded trials
+  myinclude2 = myinclude
   if(length(myremove)>0)
     {markerlist=markerlist[-myremove]
+    myinclude2=myinclude[-myremove]
     }
   nmarkers = length(markerlist)
     
@@ -250,7 +252,7 @@ for (mysub in 1:3){  #c(1:length(to_run))){
       
       # if there are more than 2 rejected points, the whole epoch is marked as bad
       if(length(rejpoints)>interpolatebad)
-        {myinclude[mym]=-1; #flag with -1; denotes drop this epoch; triggered by either channel
+        {myinclude2[mym]=-1; #flag with -1; denotes drop this epoch; triggered by either channel
         }
       
       # if there are two or less (but more than zero)
@@ -278,7 +280,7 @@ for (mysub in 1:3){  #c(1:length(to_run))){
   # myepoched updated so only has retained epochs)
   #--------------------------------------------------------
     
-  keepmarkers=which(myinclude==1)
+  keepmarkers=which(myinclude2==1)
   origdata=myepoched #keep this so can reconstruct
   myepoched=myepoched[keepmarkers,,,] #file with only accepted epochs
   nmarkers2=length(keepmarkers)
@@ -507,6 +509,7 @@ for (mysub in 1:3){  #c(1:length(to_run))){
   abline(v = baselinestart_time, lty = 2)
   abline(v = baselineend_time, lty = 2)
   text(-4,110,'blue=R\n red=L\n black=(L-R) +100',cex=.75)
+  mytitle <- paste0(task, ', ', mysubname)
   title(mytitle)
     
   dev.off()
