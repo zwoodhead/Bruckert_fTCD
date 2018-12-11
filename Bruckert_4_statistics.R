@@ -163,3 +163,12 @@ Lisa_mod_dat_short$cooks<-cooks
 
 #Run the Fligner-Killeen test
 H4_p <- fligner.test(Lisa_mod_dat_short$cooks ~ Lisa_mod_dat_short$hand)$p.value
+
+
+
+#plots
+
+ggplot(Lisa_mod_dat,aes(x=LI))+geom_histogram()+facet_grid(hand~task)
+
+ggplot(Lisa_mod_dat_short,aes(x=cooks))+geom_histogram()+facet_wrap(~hand)
+
