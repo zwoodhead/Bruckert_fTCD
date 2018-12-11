@@ -4,6 +4,7 @@
 #
 #   Created by Paul Thompson, 26/11/2018.
 #   Modified by Zoe Woodhead, 27/11/2018.
+#   Syntax error fixed by Paul Thompson & Zoe Woodhead, 11/12/2018
 # 
 #----------------------------------------------------------------------------------#
 
@@ -44,8 +45,9 @@ demoindex <- vector(mode='integer', dim(wordgen)[1])
 ppttindex <- vector(mode='integer', dim(wordgen)[1])
 
 for (i in 1:dim(wordgen)[1]) # start by running through participants in wordgen data
-{demoindex[i] <- which(str_detect(demographics$Filename, wordgen$Filename[i]))
- ppttindex[i] <- which(str_detect(pptt$Filename, wordgen$Filename[i])) 
+{shortname <- substr(wordgen$Filename[i],1,6) # ignore final characters of name
+  demoindex[i] <- which(str_detect(demographics$Filename, shortname))
+ ppttindex[i] <- which(str_detect(pptt$Filename, shortname)) 
  }
 
 Lisa_dat <- data.frame('id' = as.factor(wordgen$Filename),
@@ -54,11 +56,11 @@ Lisa_dat <- data.frame('id' = as.factor(wordgen$Filename),
                        'WordGen' = wordgen$LI,
                        'PPTT' = pptt$LI[ppttindex])
 
-Lisa_mod_dat_short <- Lisa_dat[ , which(Lisa_dat$Exclude==0)] # Removes excluded participants
+Lisa_mod_dat_short <- Lisa_dat[which(Lisa_dat$exclude==0), ] # Removes excluded participants
 
 Lisa_mod_dat<- melt(Lisa_dat) 
 
-colnames(Lisa_dat) <- c('id','hand','exclude','task','LI')
+colnames(Lisa_mod_dat) <- c('id','hand','exclude','task','LI')
 
 #----------------------------------------------------------------------------------#
 
@@ -74,7 +76,7 @@ colnames(Lisa_dat) <- c('id','hand','exclude','task','LI')
 
 #Homogeneous variance model
 
-mod0<-lme(LI~task+hand, random=list(id=pdSymm(form=~1)),data=Lisa_mod_dat, na.action="na.exclude", method="REML")
+mod0<-lme(fixed=LI~1+hand+task, random=list(id=pdSymm(form=~1)),data=Lisa_mod_dat, na.action="na.exclude", method="REML")
 
 #to extract the results with pvalue (t-test for marginal significance of each fixed effect with other fixed effects)
 summary(mod0)
@@ -86,7 +88,7 @@ VarCorr(mod0)
 
 #Heterogeneous model variance (between-person)
 
-mod1<-lme(LI~task+hand, random=list(id=pdSymm(form=~0+hand)),data=Lisa_mod_dat,na.action="na.exclude",method="REML")
+mod1<-lme(fixed=LI ~ 1 + hand + task, random=list(id=pdDiag(form= ~ 0 + hand)),data=Lisa_mod_dat,na.action="na.exclude",method="REML")
 
 summary(mod1)
 
@@ -105,7 +107,7 @@ anova(mod0,mod1)
 
 #Heterogeneous model variance (within-person)
 
-mod2<-lme(LI~task+hand, random=list(id=pdSymm(form=~1)),weights=varIdent((form=~1|hand)),data=Lisa_mod_dat,na.action="na.exclude",method="REML")
+mod2<-lme(fixed=LI ~ 1 + hand + task, random = list(id=pdSymm(form = ~1 )), weights=varIdent(form=~1 | hand), data=Lisa_mod_dat, na.action=na.exclude, method="REML")
 
 summary(mod2)
 
@@ -116,19 +118,18 @@ VarCorr(mod2)
 #residual std deviation
 summary(mod2)$sigma
 
-#Residual variance of left hand (dependent on the order of factors)
+#Residual variance of right hand (dependent on the order of factors)
 (summary(mod2)$sigma*1)^2
 
-#Residual variance of right hand
+#Residual variance of left hand
 (summary(mod2)$sigma*coef(mod2$modelStruct$varStruct,uncons=FALSE))^2
 
 
 #----------------------------------------------------------------------------------#
 
-#Likelihood ration test between homogeneous and heterogeneous withi-person
+#Likelihood ratio test between homogeneous and heterogeneous withi-person
 
 anova(mod0,mod2)
-
 
 #----------------------------------------------------------------------------------#
 
