@@ -154,8 +154,8 @@ anova(mod0,mod2)
 H3_results <- cor.test(Lisa_mod_dat_short$WordGen, Lisa_mod_dat_short$PPTT)
 
 #Plot data
-
-print(ggplot(Lisa_mod_dat_short,aes(y=PPTT,x=WordGen,colour=hand))+geom_point(size=2)+theme_bw())
+levels(Lisa_mod_dat_short$hand) <- c('Left', 'Right')
+print(ggplot(Lisa_mod_dat_short,aes(y=PPTT,x=WordGen,colour=hand))+geom_point(size=2)+theme_bw()+ scale_color_manual(values=c("#999999","#56B4E9")))
 
 #Fit a linear model to both handedness groups
 
@@ -169,17 +169,17 @@ Lisa_mod_dat_short$cooks<-cooks
 H4_p <- fligner.test(Lisa_mod_dat_short$cooks ~ Lisa_mod_dat_short$hand)$p.value
 
 
-
+levels(Lisa_mod_dat$hand) <- c('Left', 'Right')
 #plots
 
-ggplot(Lisa_mod_dat,aes(x=LI,fill=hand))+geom_density(alpha=0.5)
+ggplot(Lisa_mod_dat,aes(x=LI,fill=hand))+geom_density(alpha=0.5) +theme_bw() + scale_color_manual(values=c("#999999", "#56B4E9"))
 
-ggplot(Lisa_mod_dat,aes(x=LI,fill=task))+geom_density(alpha=0.5)
+ggplot(Lisa_mod_dat,aes(x=LI,fill=task))+geom_density(alpha=0.5)+theme_bw() + scale_color_manual(values=c("#999999", "#56B4E9"))
 
-ggplot(Lisa_mod_dat_short,aes(x=cooks))+geom_histogram()+facet_wrap(~hand)
+ggplot(Lisa_mod_dat_short,aes(x=cooks))+geom_histogram()+facet_wrap(~hand)+theme_bw()+ scale_color_manual(values=c("#999999", "#56B4E9"))
 
 
 # Pirate Plot
 library('yarrr')
-levels(Lisa_mod_dat$hand) <- c('Left', 'Right')
+
 pirateplot(data=Lisa_mod_dat, LI~task*hand)
