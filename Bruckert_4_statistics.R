@@ -57,10 +57,14 @@ Lisa_dat <- data.frame('id' = as.factor(wordgen$Filename),
                        'PPTT' = pptt$LI[ppttindex])
 
 Lisa_mod_dat_short <- Lisa_dat[which(Lisa_dat$exclude==0), ] # Removes excluded participants
-
 Lisa_mod_dat<- melt(Lisa_dat) 
-
 colnames(Lisa_mod_dat) <- c('id','hand','exclude','task','LI')
+
+# Normality tests
+shapiro.test(Lisa_mod_dat_short$WordGen[which(Lisa_mod_dat_short$hand==1)])
+shapiro.test(Lisa_mod_dat_short$WordGen[which(Lisa_mod_dat_short$hand==0)])
+shapiro.test(Lisa_mod_dat_short$PPTT[which(Lisa_mod_dat_short$hand==1)])
+shapiro.test(Lisa_mod_dat_short$PPTT[which(Lisa_mod_dat_short$hand==0)])
 
 #----------------------------------------------------------------------------------#
 
@@ -168,7 +172,14 @@ H4_p <- fligner.test(Lisa_mod_dat_short$cooks ~ Lisa_mod_dat_short$hand)$p.value
 
 #plots
 
-ggplot(Lisa_mod_dat,aes(x=LI))+geom_histogram()+facet_grid(hand~task)
+ggplot(Lisa_mod_dat,aes(x=LI,fill=hand))+geom_density(alpha=0.5)
+
+ggplot(Lisa_mod_dat,aes(x=LI,fill=task))+geom_density(alpha=0.5)
 
 ggplot(Lisa_mod_dat_short,aes(x=cooks))+geom_histogram()+facet_wrap(~hand)
 
+
+# Pirate Plot
+library('yarrr')
+levels(Lisa_mod_dat$hand) <- c('Left', 'Right')
+pirateplot(data=Lisa_mod_dat, LI~task*hand)
