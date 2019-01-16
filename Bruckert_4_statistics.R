@@ -172,11 +172,11 @@ H4_p <- fligner.test(Lisa_mod_dat_short$cooks ~ Lisa_mod_dat_short$hand)$p.value
 levels(Lisa_mod_dat$hand) <- c('Left', 'Right')
 #plots
 
-ggplot(Lisa_mod_dat,aes(x=LI,fill=hand))+geom_density(alpha=0.5) +theme_bw() + scale_color_manual(values=c("orange1", "royalblue2"))
+ggplot(Lisa_mod_dat,aes(x=LI,fill=hand))+geom_density(alpha=0.5) +theme_bw() + scale_fill_manual(values=c("orange1", "royalblue2"))
 
-ggplot(Lisa_mod_dat,aes(x=LI,fill=task))+geom_density(alpha=0.5)+theme_bw() + scale_color_manual(values=c("orange1", "royalblue2"))
+ggplot(Lisa_mod_dat,aes(x=LI,fill=task))+geom_density(alpha=0.5)+theme_bw() + scale_fill_manual(values=c("orange1", "royalblue2"))
 
-ggplot(Lisa_mod_dat_short,aes(x=cooks))+geom_histogram()+facet_wrap(~hand)+theme_bw()+ scale_color_manual(values=c("orange1", "royalblue2"))
+ggplot(Lisa_mod_dat_short,aes(x=cooks))+geom_histogram()+facet_wrap(~hand)+theme_bw()+ scale_fill_manual(values=c("orange1", "royalblue2"))
 
 
 # Pirate Plot
