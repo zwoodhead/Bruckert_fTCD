@@ -1,5 +1,5 @@
 #########################################################################################
-# Bruckert Script 1: View trials
+# Script 1: View trials
 #########################################################################################
 # This script reads in fTCD raw data and allows you to manually mark trials with artifacts
 
