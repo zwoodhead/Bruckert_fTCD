@@ -15,8 +15,8 @@ task <- 'WordGen'
 if (task_switch == 2){ task <- 'PPTT' }
 
 # Specify directory and other variable parameters
-rootdir <- "H:/github/Bruckert_fTCD/"
-datadir <- paste0(rootdir,'Bruckert_Chpt4_fTCD_',task,'_rawdata/')
+rootdir <- "H:/github/DPhil_Chapter4_fTCD/"
+datadir <- paste0(rootdir,'Chpt4_fTCD_',task,'_rawdata/')
 
 datafiles <- list.files(datadir, pattern='*.exp')
 nfiles <- length(datafiles)
@@ -49,7 +49,7 @@ if (task_switch == 2)
   { trialsperrun = 15}
 
 # Read in existing inclusion data
-all_trials_inclusions <- read.csv(paste0('Bruckert_',task,'_trial_inclusion.csv'))
+all_trials_inclusions <- read.csv(paste0(task,'_trial_inclusion.csv'))
 colnames(all_trials_inclusions) <- datafiles
 
 ########################################################
@@ -238,5 +238,5 @@ for (mysub in startdata:enddata){
 } #next subject
   
 #Print trial inclusion file
-write.csv(all_trials_inclusions, paste0('Bruckert_',task,'_trial_inclusion.csv'), row.names=FALSE)
+write.csv(all_trials_inclusions, paste0(task,'_trial_inclusion.csv'), row.names=FALSE)
   
