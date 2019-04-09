@@ -182,4 +182,4 @@ ggplot(fTCD_mod_dat_short,aes(x=cooks))+geom_histogram()+facet_wrap(~hand)+theme
 # Pirate Plot
 library('yarrr')
 
-pirateplot(data=fTCD_mod_dat, LI~task*hand)
+pirateplot(data=fTCD_mod_dat, LI~task*hand, inf.method='ci')
