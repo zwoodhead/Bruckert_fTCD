@@ -227,17 +227,20 @@ mytable <- table(fTCD_mod_dat_short$cat2,fTCD_mod_dat_short$Hand)
 chisq.test(mytable) #v small sample for this, though it shows striking difference!
 
 # Report EHI values for each category
-mymeans <- fTCD_mod_dat_short %>% group_by(cat2) %>% 
+myRHmeans <- fTCD_mod_dat_short %>% filter(Hand=='Right') %>% group_by(cat2) %>% 
   summarise(myn = n(), EHI_mean = mean(EHI), EHI_sd = sd(EHI),
             handpref_mean = mean(Handpref), handpref_sd = sd(Handpref))
 
+# Try that for LHs only
+myLHmeans <- fTCD_mod_dat_short %>% filter(Hand=='Left') %>% group_by(cat2) %>% 
+  summarise(myn = n(), EHI_mean = mean(EHI), EHI_sd = sd(EHI),
+            handpref_mean = mean(Handpref), handpref_sd = sd(Handpref))
+  
 
+# Prepare data for Figure 5
 fTCD_dat2 <- fTCD_dat %>% select(id, EHI, Handpref)
 fTCD_dat2_long <- melt(fTCD_dat2) 
-
 colnames(fTCD_dat2_long) <- c('id','Measure','Handedness')
-
-
 fTCD_mod_dat3<-base::merge(fTCD_mod_dat,fTCD_dat2_long,by=c("id"))
 fTCD_mod_dat3$Measure <- factor(fTCD_mod_dat3$Measure, labels = c("Edinburgh Handedness Index", "Quantification of Hand Preference"))
 levels(fTCD_mod_dat3$Task) <- c("Word Generation","Semantic Decision")
