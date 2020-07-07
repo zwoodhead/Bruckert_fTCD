@@ -14,7 +14,7 @@ library(ggplot2)
 
 #Load in data and clean if necessary.
 
-rootdir <- "H:/github/DPhil_Chapter4_fTCD/"
+rootdir <- "/Users/zoe/OneDrive - Nexus365/github/DPhil_Chapter4_fTCD/"
 
 wordgen <- read.csv(paste0(rootdir,'WordGen_results.csv'), stringsAsFactors=FALSE) # The expressive task
 wordgen_retest <- read.csv(paste0(rootdir,'WordGen_RETEST_results.csv'))
@@ -84,9 +84,9 @@ shapiro.test(PPTT_retest_mod_dat_short$Test2)
 
 # Test-retest correlations
 cor.test(WG_retest_mod_dat_short$Test1, WG_retest_mod_dat_short$Test2)
-cor.test(WG_retest_mod_dat_short$Test1, WG_retest_mod_dat_short$Test2, method='spearman')
+#cor.test(WG_retest_mod_dat_short$Test1, WG_retest_mod_dat_short$Test2, method='spearman')
 cor.test(PPTT_retest_mod_dat_short$Test1, PPTT_retest_mod_dat_short$Test2)
-cor.test(PPTT_retest_mod_dat_short$Test1, PPTT_retest_mod_dat_short$Test2, method='spearman')
+#cor.test(PPTT_retest_mod_dat_short$Test1, PPTT_retest_mod_dat_short$Test2, method='spearman')
 
 
 ## Exploratory analysis: Split-half reliability
