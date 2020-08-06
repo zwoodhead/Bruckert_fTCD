@@ -28,51 +28,130 @@ library(stringr)
 library(reshape2)
 library(ggplot2)
 
-#Load in data and clean if necessary.
-
+# Load in data
 rootdir <- "/Users/zoe/OneDrive - Nexus365/github/DPhil_Chapter4_fTCD/"
 
-wordgen <- read.csv(paste0(rootdir,'WordGen_results.csv'), stringsAsFactors=FALSE) # The expressive task
-pptt <- read.csv(paste0(rootdir,'PPTT_results.csv'), stringsAsFactors=FALSE)       # The receptive task
-
-wordgen <- wordgen[ , c(1,7,14)]
-pptt <- pptt[ , c(1,7,14)]
-
+wordgen <- read.csv(paste0(rootdir,'WordGen_results.csv'), stringsAsFactors=FALSE)
+pptt <- read.csv(paste0(rootdir,'PPTT_results.csv'), stringsAsFactors=FALSE)     
 demographics <- read.csv(paste0(rootdir,'Chpt4_fTCD_demographics.csv'), stringsAsFactors=FALSE)
-demographics <- demographics[, c(1,4,7,8)]
-colnames(demographics) <- c('Filename','Hand','EHI','handpref')
+wordgen_retest <- read.csv(paste0(rootdir,'WordGen_RETEST_results.csv'), stringsAsFactors=FALSE)
+pptt_retest <- read.csv(paste0(rootdir,'PPTT_RETEST_results.csv'), stringsAsFactors=FALSE)
 
-#Now we have three data frames that we need to merge into alldat, but the filenames may be in a different order
-demoindex <- vector(mode='integer', dim(wordgen)[1])
-ppttindex <- vector(mode='integer', dim(wordgen)[1])
+# Tidy data
+wordgen$ID<- substr(wordgen$Filename, start = 1, stop = 3)
+wordgen <- wordgen %>% select(ID, nFinal, LI, se, lat, odd, even, exclusions)
+colnames(wordgen) <- c('ID','WG.n', 'WG.LI', 'WG.se', 'WG.lat', 'WG.odd', 'WG.even', 'WG.exclusions')
 
-for (i in 1:dim(wordgen)[1]) # start by running through participants in wordgen data
-{shortname <- substr(wordgen$Filename[i],1,6) # ignore final characters of name
-  demoindex[i] <- which(str_detect(demographics$Filename, shortname))
- ppttindex[i] <- which(str_detect(pptt$Filename, shortname)) 
- }
+pptt$ID <- substr(pptt$Filename,start=1,stop=3)
+pptt <- pptt %>% select(ID, nFinal, LI, se, lat, odd, even, exclusions)
+colnames(pptt) <- c('ID','PPTT.n', 'PPTT.LI', 'PPTT.se', 'PPTT.lat', 'PPTT.odd', 'PPTT.even', 'PPTT.exclusions')
 
-fTCD_dat <- data.frame('id' = as.factor(wordgen$Filename),
-                       'Hand' = as.factor(demographics$Hand[demoindex]),
-                       'exclude' = as.factor(wordgen$exclusions + pptt$exclusions[ppttindex]), # Participants have to have good data for BOTH tasks to be included
-                       'WordGen' = wordgen$LI,
-                       'PPTT' = pptt$LI[ppttindex],
-                       'EHI' = demographics$EHI[demoindex],
-                       'Handpref' = demographics$handpref[demoindex])
+demographics$ID<- substr(demographics$ID,start=1,stop=3)
 
-fTCD_mod_dat_short <- fTCD_dat[which(fTCD_dat$exclude==0), ] # Removes excluded participants
+wordgen_retest$ID <- substr(wordgen_retest$Filename, start = 8, stop = 10)
+wordgen_retest <- wordgen_retest %>% select(ID, LI)
 
-fTCD_mod_dat<- melt(fTCD_dat[ , -c(6,7)]) #excluding EHI and handpref columns
-colnames(fTCD_mod_dat) <- c('id','Hand','exclude','Task','LI')
+pptt_retest$ID <- substr(pptt_retest$Filename, start = 8, stop = 10)
+pptt_retest <- pptt_retest %>% select(ID, LI)
 
+# Merge the wordgen, pptt and demographics data frames into fTCD_dat according to ID
+fTCD_dat <- merge(demographics,wordgen,by="ID") 
+fTCD_dat <- merge(fTCD_dat,pptt,by="ID")
+#There are 154 participants with data on both tasks and also on demographics
 
+# Will just delete those with exclusion in either task (WG.exclusions or PPTT.exclusions)
+bothexclude<-fTCD_dat$WG.exclusions + fTCD_dat$PPTT.exclusions
+fTCD_dat_short <- fTCD_dat[bothexclude==0, ] # Removes excluded participants
+# This leaves 151 participants with useable data on both tasks
+
+#fTCD_mod_dat<- melt(fTCD_dat[ , -c(6,7)]) #excluding EHI and handpref columns
+#colnames(fTCD_mod_dat) <- c('id','Hand','exclude','Task','LI')
+
+#----------------------------------------------------------------------------------#
+# Participants
+# Report demographic summary statistics - this is using the 151 participants with usable data
+
+age_mean <- mean(fTCD_dat_short$age)
+age_sd <- sd(fTCD_dat$age)
+
+cat(paste('Average age =', floor(age_mean), 'years and', round(12 *(age_mean - floor(age_mean))), 'months\n', 
+          'SD =', floor(age_sd), 'years and', round(12 *(age_sd - floor(age_sd))), 'months.'))
+
+# Contingency table of left/right handedness and male/female sex.
+# Hand 0=left, Hand 1=right
+table(fTCD_dat_short$sex,fTCD_dat_short$hand_self_report)
+
+# Count participants with retest data
+cat(paste('Word Generation retest data was acquired from', sum(fTCD_dat_short$wordgen_retest), 'participants'))
+cat(paste('Semantic Association retest data was acquired from', sum(fTCD_dat_short$PPTT_retest), 'participants'))
+
+#----------------------------------------------------------------------------------#
+# Data Quality
+
+# Calculate the number of trials excluded for each task
+wordgen_excluded_trials <- length(fTCD_dat_short$ID) * 23 - sum(fTCD_dat_short$WG.n)
+wordgen_excluded_trials_pc <- wordgen_excluded_trials / (length(fTCD_dat_short$ID) * 23) * 100
+
+pptt_excluded_trials <- length(fTCD_dat_short$ID) * 15 - sum(fTCD_dat_short$PPTT.n)
+pptt_excluded_trials_pc <- pptt_excluded_trials / (length(fTCD_dat_short$ID) * 15) * 100
+
+cat(paste('For word generation,', round(wordgen_excluded_trials_pc,2), '% of all trials were excluded,\n',
+          'and for semantic association,', round(pptt_excluded_trials_pc,2), '% were excluded.'))
+
+# Calculate split-half reliability (comparing LI from odd and even trials)
+WG_splithalf <- cor.test(fTCD_dat_short$WG.odd, fTCD_dat_short$WG.even)
+plot(fTCD_dat_short$WG.odd, fTCD_dat_short$WG.even)
+PPTT_splithalf <- cor.test(fTCD_dat_short$PPTT.odd, fTCD_dat_short$PPTT.even)
+plot(fTCD_dat_short$PPTT.odd, fTCD_dat_short$PPTT.even) #PPTT
+
+# Join with retest data and calculate test-retest reliability
+fTCD_dat_short$WG2.LI <- NA
+fTCD_dat_short$PPTT2.LI <- NA
+
+w < which(fTCD_dat_short$ID %in% wordgen_retest$ID)
+fTCD_dat_short$WG2.LI[w] <- wordgen_retest$LI
+
+w <- which(fTCD_dat_short$ID %in% pptt_retest$ID)
+fTCD_dat_short$PPTT2.LI[w] <- pptt_retest$LI
+
+WG_test_retest <- cor.test(fTCD_dat_short$WG.LI, fTCD_dat_short$WG2.LI)
+plot(fTCD_dat_short$WG.LI, fTCD_dat_short$WG2.LI)
+
+PPTT_test_retest <- cor.test(fTCD_dat_short$PPTT.LI, fTCD_dat_short$PPTT2.LI)
+plot(fTCD_dat_short$PPTT.LI, fTCD_dat_short$PPTT2.LI)
+
+#----------------------------------------------------------------------------------#
+# Laterality Indices
+
+# Shapiro-Wilks normality tests
+shapiro.test(fTCD_dat_short$WG.LI[fTCD_dat_short$hand_self_report==1]) # WG, right handers
+shapiro.test(fTCD_dat_short$WG.LI[fTCD_dat_short$hand_self_report==0]) # WG, left handers
+shapiro.test(fTCD_dat_short$PPTT.LI[fTCD_dat_short$hand_self_report==1]) # PPTT, right handers
+shapiro.test(fTCD_dat_short$PPTT.LI[fTCD_dat_short$hand_self_report==0]) # PPTT, left handers
+
+# Report mean and sd LI values
+LI_stats <- fTCD_dat_short %>% group_by(hand_self_report) %>% 
+  summarise(WG.LI_mean = mean(WG.LI), WG.LI_sd = sd(WG.LI),
+            PPTT.LI_mean = mean(PPTT.LI), PPTT.LI_sd = sd(PPTT.LI))
+
+LI_stats$hand_self_report <- c('Left', 'Right')
+print(LI_stats)
+
+#----------------------------------------------------------------------------------#
 ##Figure 2: Pirate plot
+fTCD_dat_long <- fTCD_dat_short %>% select(ID, hand_self_report, WG.LI, PPTT.LI) %>% 
+  pivot_longer(cols = WG.LI:PPTT.LI, names_to = 'Task', values_to = 'LI')
 
-library('yarrr')
-levels(fTCD_mod_dat$Hand) <- c('Left', 'Right')
-levels(fTCD_mod_dat$Task)<-c("Word Gen","Semantic")
-pirateplot(data=fTCD_mod_dat, LI~Task*Hand, bean.f.col = c("orange1", "royalblue2"),ylab="Laterality Index (LI)")
+colnames(fTCD_dat_long)[2] <-  'Hand' 
+fTCD_dat_long$Hand <- as.factor(fTCD_dat_long$Hand)
+fTCD_dat_long$Task <- as.factor(fTCD_dat_long$Task)
+
+levels(fTCD_dat_long$Hand) <- c('Left', 'Right')
+levels(fTCD_dat_long$Task)<-c("Word Gen","Semantic")
+png(filename = 'Figure2.png')
+pirateplot(data=fTCD_dat_long, LI~Task*Hand, bean.f.col = c("orange1", "royalblue2"),ylab="Laterality Index (LI)")
 abline(h=0,lwd=2.5)
+dev.off()
 
 #----------------------------------------------------------------------------------#
 
@@ -92,7 +171,7 @@ abline(h=0,lwd=2.5)
 # (i.e. each participant can have a different strength of lateralisation, but the difference between tasks is the same)
 # It has homogeneous variances, i.e. it assumes that the variance between left and right handed participants is the same
 
-mod1<-lme(fixed=LI~1+Hand+Task, random=list(id=pdSymm(form=~1)),data=fTCD_mod_dat, 
+mod1<-lme(fixed=LI~1+Hand+Task, random=list(ID=pdSymm(form=~1)),data=fTCD_dat_long, 
           na.action="na.exclude", method="REML")
 
 #to extract the results with pvalue (t-test for marginal significance of each fixed effect with other fixed effects)
@@ -110,7 +189,7 @@ VarCorr(mod1)
 # i.e. the between-persons variances are heterogeneous 
 # We predict that the left handers will have more varied slopes than the right handers.
 
-mod2<-lme(fixed=LI ~ 1 + Hand + Task, random=list(id=pdDiag(form= ~ 0 + Hand)),data=fTCD_mod_dat,na.action="na.exclude",method="REML")
+mod2<-lme(fixed=LI ~ 1 + Hand + Task, random=list(ID=pdDiag(form= ~ 0 + Hand)),data=fTCD_dat_long,na.action="na.exclude",method="REML")
 
 summary(mod2)
 
@@ -129,7 +208,7 @@ anova(mod1,mod2)
 
 #Heterogeneous model variance (within-person)
 
-# mod3 <- lme(fixed=LI ~ 1 + Hand + Task, random = list(id=pdSymm(form = ~1 )), weights=varIdent(form=~1 | Hand), data=fTCD_mod_dat, na.action=na.exclude, method="REML")
+# mod3 <- lme(fixed=LI ~ 1 + Hand + Task, random = list(ID=pdSymm(form = ~1 )), weights=varIdent(form=~1 | Hand), data=fTCD_dat_long, na.action=na.exclude, method="REML")
 # 
 # summary(mod3)
 # 
@@ -169,7 +248,7 @@ anova(mod1,mod2)
 
 #Pearson's correlation between expressive and receptive tasks
 
-H3_results <- cor.test(fTCD_mod_dat_short$WordGen, fTCD_mod_dat_short$PPTT)
+H3_results <- cor.test(fTCD_dat_short$WG.LI, fTCD_dat_short$PPTT.LI)
 
 #Plot data
 #levels(fTCD_mod_dat_short$hand) <- c('Left', 'Right')
@@ -177,15 +256,15 @@ H3_results <- cor.test(fTCD_mod_dat_short$WordGen, fTCD_mod_dat_short$PPTT)
 
 #Fit a linear model to both handedness groups
 
-mymod<-lm(PPTT~WordGen,data=fTCD_mod_dat_short)
+mymod<-lm(PPTT.LI~WG.LI,data=fTCD_dat_short)
 
 #Calculate Cook's Distance for each participant
-cooks<-cooks.distance(mymod)
-fTCD_mod_dat_short$cooks<-cooks
-fTCD_mod_dat_short$cooks_ind<-ifelse(cooks>=4*mean(cooks),"Outlier","Non-Outlier")
-fTCD_mod_dat_short$cooks_ind<-as.factor(fTCD_mod_dat_short$cooks_ind)
+cooks <- cooks.distance(mymod)
+fTCD_dat_short$cooks <- cooks
+fTCD_dat_short$cooks_ind <- ifelse(cooks>=4*mean(cooks),"Outlier","Non-Outlier")
+fTCD_dat_short$cooks_ind <- as.factor(fTCD_dat_short$cooks_ind)
 #Run the Fligner-Killeen test
-H4_p <- fligner.test(fTCD_mod_dat_short$cooks ~ fTCD_mod_dat_short$Hand)$p.value
+H4_p <- fligner.test(fTCD_dat_short$cooks ~ fTCD_dat_short$hand_self_report)$p.value
 
 
 ## Figure 3: Density histogram
