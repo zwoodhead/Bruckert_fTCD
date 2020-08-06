@@ -17,7 +17,7 @@
 
 #Check for required R packages and install if not on system
 
-list.of.packages <- c("nlme", "yarrr", "tidyverse")
+list.of.packages <- c("nlme", "yarrr", "tidyverse", "stringr","reshape2","ggplot2", "ggpubr")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 
@@ -27,6 +27,7 @@ library(tidyverse)
 library(stringr)
 library(reshape2)
 library(ggplot2)
+library(ggpubr) 
 
 # Load in data
 rootdir <- "/Users/zoe/OneDrive - Nexus365/github/DPhil_Chapter4_fTCD/"
@@ -245,14 +246,56 @@ anova(mod1,mod2)
 #Test by comparing variability of cook's distance between groups using Fligner-Killeen test
 
 #----------------------------------------------------------------------------------#
+# Figure 3: Density Plots
+
+# Word Generation
+p1 <- ggplot(fTCD_dat_long[fTCD_dat_long$Task=='Word Gen',], aes(x=LI, fill=Hand)) +
+  geom_density(alpha=0.4) +
+  xlim(-3,6)+
+  labs(title="Word Generation", x ="") + 
+  theme_bw() + scale_fill_manual(values=c("orange1", "royalblue2"))
+# Semantic Association
+p2 <- ggplot(fTCD_dat_long[fTCD_dat_long$Task=='Semantic',], aes(x=LI, fill=Hand)) +
+  geom_density(alpha=0.4)+
+  xlim(-3,6)+
+  labs(title="Semantic Association",
+       x ="Laterality index")  + 
+  theme_bw() + scale_fill_manual(values=c("orange1", "royalblue2"))
+# Arrange into two panels
+ggarrange(p1,p2, ncol = 1, nrow = 2,common.legend=T,legend="bottom")
+# Save
+ggsave(
+  "Figure3.png",
+  width = 5, height = 8,
+  dpi = 300
+)
+
+#----------------------------------------------------------------------------------#
+# Hypothesis 3: Correlation between tasks
 
 #Pearson's correlation between expressive and receptive tasks
-
 H3_results <- cor.test(fTCD_dat_short$WG.LI, fTCD_dat_short$PPTT.LI)
+print(H3_results)
 
-#Plot data
-#levels(fTCD_mod_dat_short$hand) <- c('Left', 'Right')
-#ggplot(fTCD_mod_dat_short,aes(y=PPTT,x=WordGen,colour=hand))+geom_point(size=2)+theme_bw()+ scale_color_manual(values=c("orange1", "royalblue2"))
+#----------------------------------------------------------------------------------#
+# Figure 4: Scatter plot of LI values
+
+#levels(fTCD_mod_dat_short$Hand) <- c('Left', 'Right')
+ggplot(fTCD_dat_short,aes(y=PPTT.LI,x=WG.LI,colour=hand_self_report,shape=cooks_ind)) +
+  geom_point(size=2,alpha=0.8) + theme_bw() + scale_color_manual(values=c("orange1", "royalblue2")) +
+  labs(title="Laterality Indices") + ylab("Semantic Decision")+xlab("Word Generation") +
+  geom_hline(yintercept = 0) + geom_vline(xintercept=0) + 
+  guides(colour=guide_legend(title = "Handedness"),shape=guide_legend(title="Outlier"))
+
+ggsave(
+  "Figure4.png",
+  width = 5, height = 4,
+  dpi = 300
+)
+
+
+#----------------------------------------------------------------------------------#
+# Hypothesis 4: variability in left and right handers
 
 #Fit a linear model to both handedness groups
 
@@ -266,68 +309,48 @@ fTCD_dat_short$cooks_ind <- as.factor(fTCD_dat_short$cooks_ind)
 #Run the Fligner-Killeen test
 H4_p <- fligner.test(fTCD_dat_short$cooks ~ fTCD_dat_short$hand_self_report)$p.value
 
+# Categorise each individual as LL, LR, RL or RR for laterality on each task
+fTCD_dat_short$cat2 <- 11
+w<-which(fTCD_dat_short$WG.LI<0)
+fTCD_dat_short$cat2[w] <- 21
+w<-which(fTCD_dat_short$PPTT.LI<0)
+fTCD_dat_short$cat2[w] <- fTCD_dat_short$cat2[w]+1
 
-## Figure 3: Density histogram
-
-levels(fTCD_mod_dat$Hand) <- c('Left', 'Right')
-ggplot(fTCD_mod_dat,aes(x=LI,fill=Hand))+geom_density(alpha=0.5) +theme_bw() + scale_fill_manual(values=c("orange1", "royalblue2"))+ guides(fill=guide_legend(title="Handedness"))+xlab("Laterality Index (LI)")+ylab("Density")
-
-#ggplot(fTCD_mod_dat,aes(x=LI,fill=task))+geom_density(alpha=0.5)+theme_bw() + scale_fill_manual(values=c("orange1", "royalblue2"))
-
-#ggplot(fTCD_mod_dat_short,aes(x=cooks))+geom_histogram()+facet_wrap(~hand)+theme_bw()+ scale_fill_manual(values=c("orange1", "royalblue2"))
-
-
-
-## Figure 4: Scatterplot of LI
-
-levels(fTCD_mod_dat_short$Hand) <- c('Left', 'Right')
-ggplot(fTCD_mod_dat_short,aes(y=PPTT,x=WordGen,colour=Hand,shape=cooks_ind))+geom_point(size=2,alpha=0.6)+theme_bw()+ scale_color_manual(values=c("orange1", "royalblue2"))+ylab("Semantic Decision LI")+xlab("Word Generation LI")+geom_hline(yintercept = 0)+geom_vline(xintercept=0) + guides(colour=guide_legend(title = "Handedness"),shape=guide_legend(title="Bivariate Outliers"))
-
-# Bonus Figure: Line plots
-tmpdata <- fTCD_mod_dat
-tmpdata$Task <- as.numeric(c(rep(1,154), rep(2,154)))
-tmpdata %>% 
-  ggplot(aes(x=Task, y = LI, group = id, color = Hand)) + geom_line(lwd=1, alpha=0.5) + geom_point(size=3, alpha=0.8)
+# Chi square of binary handedness data and laterality categories
+mytable <- table(fTCD_dat_short$cat2,fTCD_dat_short$hand_self_report)
+print(mytable)
+chisq.test(mytable) #v small sample for this, though it shows striking difference!
 
 
 #----------------------------------------------------------------------------------#
-
-##Exploratory analysis (handedness)
-
-# Categorise each individual as LL, LR, RL or RR for laterality on each task
-fTCD_mod_dat_short$cat2 <- 11
-w<-which(fTCD_mod_dat_short$WordGen<0)
-fTCD_mod_dat_short$cat2[w] <- 21
-w<-which(fTCD_mod_dat_short$PPTT<0)
-fTCD_mod_dat_short$cat2[w] <- fTCD_mod_dat_short$cat2[w]+1
-
-# Chi square of binary handedness data and laterality categories
-mytable <- table(fTCD_mod_dat_short$cat2,fTCD_mod_dat_short$Hand)
-chisq.test(mytable) #v small sample for this, though it shows striking difference!
+# Exploratory analysis: continuous measures of handedness
 
 # Report EHI values for each category
-myRHmeans <- fTCD_mod_dat_short %>% filter(Hand=='Right') %>% group_by(cat2) %>% 
-  summarise(myn = n(), EHI_mean = mean(EHI), EHI_sd = sd(EHI),
-            handpref_mean = mean(Handpref), handpref_sd = sd(Handpref))
+myEHImeans <- fTCD_dat_short %>% group_by(hand_self_report, cat2) %>% 
+  summarise(myn = n(), EHI_mean = mean(hand_EHI_sum), EHI_sd = sd(hand_EHI_sum),
+            handpref_mean = mean(hand_pref_bias), handpref_sd = sd(hand_pref_bias))
 
-# Try that for LHs only
-myLHmeans <- fTCD_mod_dat_short %>% filter(Hand=='Left') %>% group_by(cat2) %>% 
-  summarise(myn = n(), EHI_mean = mean(EHI), EHI_sd = sd(EHI),
-            handpref_mean = mean(Handpref), handpref_sd = sd(Handpref))
-  
+#----------------------------------------------------------------------------------#
+# Figure 5: EHI and QHP data
 
 # Prepare data for Figure 5
-fTCD_dat2 <- fTCD_dat %>% select(id, EHI, Handpref)
-fTCD_dat2_long <- melt(fTCD_dat2) 
-colnames(fTCD_dat2_long) <- c('id','Measure','Handedness')
-fTCD_mod_dat3<-base::merge(fTCD_mod_dat,fTCD_dat2_long,by=c("id"))
-fTCD_mod_dat3$Measure <- factor(fTCD_mod_dat3$Measure, labels = c("Edinburgh Handedness Index", "Quantification of Hand Preference"))
-levels(fTCD_mod_dat3$Task) <- c("Word Generation","Semantic Decision")
+fTCD_handdat_long <- fTCD_dat_short %>% select(ID, hand_EHI_sum, hand_pref_bias) %>% 
+  pivot_longer(cols = hand_EHI_sum:hand_pref_bias, names_to = 'Measure', values_to = 'Handedness')
+
+fTCD_dat_long2<-base::merge(fTCD_dat_long,fTCD_handdat_long,by=c("ID"))
+
+fTCD_dat_long2$Measure <- factor(fTCD_dat_long2$Measure, labels = c("Edinburgh Handedness Index", "Quantification of Hand Preference"))
+levels(fTCD_dat_long2$Task) <- c("Word Generation","Semantic Decision")
 
 #Plot Figure 5
-ggplot(fTCD_mod_dat3,aes(y=Handedness,x=LI,colour=Task)) + 
-  geom_point(alpha=0.3,size=2)+theme_bw() + scale_color_manual(values=c("green", "magenta")) + 
+ggplot(fTCD_dat_long2,aes(y=Handedness,x=LI)) + 
+  geom_point(alpha=0.3,size=1)+theme_bw() + 
   ylab("Handedness")+xlab("Laterality Index") + 
   geom_vline(xintercept=0) + 
-  facet_grid(Measure~.,scales="free",labeller= label_value) + 
-  theme(legend.position="top") + guides(colour=guide_legend(title="Task"))
+  facet_grid(rows = vars(Measure), cols = vars(Task), scales="free",labeller= label_value)
+
+ggsave(
+  "Figure5.png",
+  width = 5, height = 5,
+  dpi = 300
+)
