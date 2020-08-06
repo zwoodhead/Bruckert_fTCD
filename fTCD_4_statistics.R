@@ -65,8 +65,6 @@ bothexclude<-fTCD_dat$WG.exclusions + fTCD_dat$PPTT.exclusions
 fTCD_dat_short <- fTCD_dat[bothexclude==0, ] # Removes excluded participants
 # This leaves 151 participants with useable data on both tasks
 
-#fTCD_mod_dat<- melt(fTCD_dat[ , -c(6,7)]) #excluding EHI and handpref columns
-#colnames(fTCD_mod_dat) <- c('id','Hand','exclude','Task','LI')
 
 #----------------------------------------------------------------------------------#
 # Participants
@@ -83,8 +81,8 @@ cat(paste('Average age =', floor(age_mean), 'years and', round(12 *(age_mean - f
 table(fTCD_dat_short$sex,fTCD_dat_short$hand_self_report)
 
 # Count participants with retest data
-cat(paste('Word Generation retest data was acquired from', sum(fTCD_dat_short$wordgen_retest), 'participants'))
-cat(paste('Semantic Association retest data was acquired from', sum(fTCD_dat_short$PPTT_retest), 'participants'))
+cat(paste('\nWord Generation retest data was acquired from', sum(fTCD_dat_short$wordgen_retest), 'participants'))
+cat(paste('\nSemantic Association retest data was acquired from', sum(fTCD_dat_short$PPTT_retest), 'participants'))
 
 #----------------------------------------------------------------------------------#
 # Data Quality
@@ -96,7 +94,7 @@ wordgen_excluded_trials_pc <- wordgen_excluded_trials / (length(fTCD_dat_short$I
 pptt_excluded_trials <- length(fTCD_dat_short$ID) * 15 - sum(fTCD_dat_short$PPTT.n)
 pptt_excluded_trials_pc <- pptt_excluded_trials / (length(fTCD_dat_short$ID) * 15) * 100
 
-cat(paste('For word generation,', round(wordgen_excluded_trials_pc,2), '% of all trials were excluded,\n',
+cat(paste('\nFor word generation,', round(wordgen_excluded_trials_pc,2), '% of all trials were excluded,\n',
           'and for semantic association,', round(pptt_excluded_trials_pc,2), '% were excluded.'))
 
 # Calculate split-half reliability (comparing LI from odd and even trials)
@@ -109,7 +107,7 @@ plot(fTCD_dat_short$PPTT.odd, fTCD_dat_short$PPTT.even) #PPTT
 fTCD_dat_short$WG2.LI <- NA
 fTCD_dat_short$PPTT2.LI <- NA
 
-w < which(fTCD_dat_short$ID %in% wordgen_retest$ID)
+w <- which(fTCD_dat_short$ID %in% wordgen_retest$ID)
 fTCD_dat_short$WG2.LI[w] <- wordgen_retest$LI
 
 w <- which(fTCD_dat_short$ID %in% pptt_retest$ID)
@@ -280,8 +278,18 @@ print(H3_results)
 #----------------------------------------------------------------------------------#
 # Figure 4: Scatter plot of LI values
 
-#levels(fTCD_mod_dat_short$Hand) <- c('Left', 'Right')
-ggplot(fTCD_dat_short,aes(y=PPTT.LI,x=WG.LI,colour=hand_self_report,shape=cooks_ind)) +
+#Fit a linear model to both handedness groups
+mymod<-lm(PPTT.LI~WG.LI,data=fTCD_dat_short)
+
+#Calculate Cook's Distance for each participant
+cooks <- cooks.distance(mymod)
+fTCD_dat_short$cooks <- cooks
+fTCD_dat_short$cooks_ind <- ifelse(cooks>=4*mean(cooks),"Outlier","Non-Outlier")
+fTCD_dat_short$cooks_ind <- as.factor(fTCD_dat_short$cooks_ind)
+
+fTCD_dat_short$hand_self_report <- as.factor(fTCD_dat_short$hand_self_report)
+levels(fTCD_dat_short$hand_self_report) <- c('Left', 'Right')
+ggplot(fTCD_dat_short, aes(y=PPTT.LI, x=WG.LI,colour=hand_self_report, shape=cooks_ind)) +
   geom_point(size=2,alpha=0.8) + theme_bw() + scale_color_manual(values=c("orange1", "royalblue2")) +
   labs(title="Laterality Indices") + ylab("Semantic Decision")+xlab("Word Generation") +
   geom_hline(yintercept = 0) + geom_vline(xintercept=0) + 
@@ -297,15 +305,6 @@ ggsave(
 #----------------------------------------------------------------------------------#
 # Hypothesis 4: variability in left and right handers
 
-#Fit a linear model to both handedness groups
-
-mymod<-lm(PPTT.LI~WG.LI,data=fTCD_dat_short)
-
-#Calculate Cook's Distance for each participant
-cooks <- cooks.distance(mymod)
-fTCD_dat_short$cooks <- cooks
-fTCD_dat_short$cooks_ind <- ifelse(cooks>=4*mean(cooks),"Outlier","Non-Outlier")
-fTCD_dat_short$cooks_ind <- as.factor(fTCD_dat_short$cooks_ind)
 #Run the Fligner-Killeen test
 H4_p <- fligner.test(fTCD_dat_short$cooks ~ fTCD_dat_short$hand_self_report)$p.value
 
