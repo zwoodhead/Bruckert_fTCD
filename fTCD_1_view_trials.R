@@ -20,7 +20,7 @@ require(osfr)
 osf_retrieve_file("https://osf.io/5kq42") %>% osf_download(conflicts = "skip") # Chpt4_fTCD_WordGen_rawdata.zip
 osf_retrieve_file("https://osf.io/6gn23") %>% osf_download(conflicts = "skip") # Chpt4_fTCD_PPTT_rawdata.zip
 unzip ("Chpt4_fTCD_WordGen_rawdata.zip", exdir = "Chpt4_fTCD_WordGen_rawdata/", overwrite = FALSE)
-unzip ("Chpt4_fTCD_PPTT_rawdata.zip", exdir = "Chpt4_fTCD_WPPTT_rawdata/", overwrite = FALSE)
+unzip ("Chpt4_fTCD_PPTT_rawdata.zip", exdir = "Chpt4_fTCD_PPTT_rawdata/", overwrite = FALSE)
 
 ########################################################
 # Specify task
