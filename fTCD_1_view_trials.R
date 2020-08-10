@@ -19,8 +19,8 @@ require(osfr)
 
 osf_retrieve_file("https://osf.io/5kq42") %>% osf_download(conflicts = "skip") # Chpt4_fTCD_WordGen_rawdata.zip
 osf_retrieve_file("https://osf.io/6gn23") %>% osf_download(conflicts = "skip") # Chpt4_fTCD_PPTT_rawdata.zip
-unzip ("Chpt4_fTCD_WordGen_rawdata.zip", exdir = ".", overwrite = FALSE)
-unzip ("Chpt4_fTCD_PPTT_rawdata.zip", exdir = ".", overwrite = FALSE)
+unzip ("Chpt4_fTCD_WordGen_rawdata.zip", exdir = "Chpt4_fTCD_WordGen_rawdata/", overwrite = FALSE)
+unzip ("Chpt4_fTCD_PPTT_rawdata.zip", exdir = "Chpt4_fTCD_WPPTT_rawdata/", overwrite = FALSE)
 
 ########################################################
 # Specify task
@@ -255,4 +255,7 @@ for (mysub in startdata:enddata){
   
 #Print trial inclusion file
 write.csv(all_trials_inclusions, paste0(task,'_trial_inclusion.csv'), row.names=FALSE)
-  
+
+# Tidy up
+if(file.exists("Chpt4_fTCD_WordGen_rawdata.zip")){file.remove("Chpt4_fTCD_WordGen_rawdata.zip")}
+if(file.exists("Chpt4_fTCD_PPTT_rawdata.zip")){file.remove("Chpt4_fTCD_PPTT_rawdata.zip")}  
