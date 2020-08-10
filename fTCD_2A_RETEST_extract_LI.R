@@ -8,7 +8,25 @@
 ########################################################
 # Install packages
 
-require(dplyr)
+list.of.packages <- c("tidyverse","osfr")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+
+require(tidyverse)
+require(osfr)
+
+########################################################
+# Load raw data from OSF
+# NB: it will not overwrite existing files
+
+if (!file.exists('Chpt4_fTCD_WordGen_rawdata')){
+  osf_retrieve_file("https://osf.io/7vhaq") %>% osf_download(conflicts = "skip") # Chpt4_fTCD_wordgen_retest_rawdata.zip
+  unzip ("Chpt4_fTCD_wordgen_retest_rawdata.zip", exdir = "Chpt4_fTCD_WordGen_rawdata/", overwrite = FALSE)
+}
+if (!file.exists('Chpt4_fTCD_PPTT_rawdata')){
+  osf_retrieve_file("https://osf.io/728nk") %>% osf_download(conflicts = "skip") # Chpt4_fTCD_PPTT_retest_rawdata.zip
+  unzip ("Chpt4_fTCD_PPTT_retest_rawdata.zip", exdir = "Chpt4_fTCD_PPTT_rawdata/", overwrite = FALSE)
+}
 
 ########################################################
 # Specify task
@@ -24,9 +42,9 @@ if (task_switch == 2){
   min_trials <- 12}
 
 # Specify directory and other variable parameters
-rootdir <- "H:/github/DPhil_Chapter4_fTCD/"
-datadir <- paste0(rootdir,'Chpt4_fTCD_',task,'_retestdata/')
-resultsfile <- paste0(rootdir,task,"_RETEST_results.csv") # File lists analysis results
+rootdir <- getwd()
+datadir <- paste0(rootdir,'/Chpt4_fTCD_',task,'_retestdata/')
+resultsfile <- paste0(rootdir,"/",task,"_RETEST_results.csv") # File lists analysis results
 
 initialdatacheck1=0; # set to 1 to view epochs after normalisation
 initialdatacheck2=0; #set to 1 to view epochs after heartbeat Correction
@@ -68,15 +86,36 @@ interpolatebad=2  #set to 2 to replace brief dropout/spiking with mean value for
 ########################################################
 # Specify subject (mysubname)
 
-# Read in existing inclusion data and identify datafiles with enough good trials (> 18 for wordgen, > 12 for PPTT)
-all_trials_inclusions <- read.csv(paste0(rootdir,task,'_RETEST_trial_inclusion.csv'))
+# Identify datafiles with enough good trials (> 18 for wordgen, > 12 for PPTT)
+# Download trial inclusion file from OSF if it doesn't exist already
+if (!file.exists(paste0(rootdir,"/",task,'_RETEST_trial_inclusion.csv'))){
+  if (task_switch == 1){
+    osf_retrieve_file("https://osf.io/w3cdk") %>% osf_download(conflicts = "skip") # WordGen_RETEST_trial_inclusion.csv
+  }
+  if (task_switch == 2){
+    osf_retrieve_file("https://osf.io/gt4zk") %>% osf_download(conflicts = "skip") # PPTT_RETEST_trial_inclusion.csv
+  }
+}
+# Read trial inclusion file
+all_trials_inclusions <- read.csv(paste0(rootdir,"/",task,'_RETEST_trial_inclusion.csv'))
+
 datafiles <- substr(colnames(all_trials_inclusions), 1, 100) # List of all datafile names
 
 all_trials_sum <- colSums(all_trials_inclusions, na.rm = 'TRUE') # Counts number of included trials per dataset
 
 to_run <- which(all_trials_sum >= min_trials)
 
+# Read in results file from directory (if it exists) or from OSF
+if (!file.exists(resultsfile)){
+  if (task_switch == 1){
+    osf_retrieve_file("https://osf.io/x4yts") %>% osf_download(conflicts = "skip") # WordGen_RETEST_results.csv
+  }
+  if (task_switch == 2){
+    osf_retrieve_file("https://osf.io/4j5uy") %>% osf_download(conflicts = "skip") # PPTT_RETEST_results.csv
+  }
+}
 results <- read.csv(resultsfile, stringsAsFactors = FALSE)
+
 
 for (mysub in (1:length(to_run))){ 
   
@@ -88,7 +127,8 @@ for (mysub in (1:length(to_run))){
   results$Filename <- as.character(results$Filename)
   
   # Find row, if it exists
-  results_row <- which(results$Filename == mydatafile)
+  results_row <- which(results$Filename == paste0("retest_",mysubname))
+  
   # If it doesn't exist, make a new row
   if(length(results_row)==0) {
     results_row <- length(results$Filename) + 1
@@ -530,8 +570,12 @@ for (mysub in (1:length(to_run))){
       write.csv(mymeanLR, csvFile, row.names=F)
     }
   
-  results$Comment <- mycomment
+  results$Comment[results_row] <- mycomment
   } # End loop through subjects
 
 # Print results file
 write.csv(results, resultsfile, row.names=FALSE)
+
+# Clean up zip files if required
+if(file.exists("Chpt4_fTCD_wordgen_retest_rawdata.zip")){file.remove("Chpt4_fTCD_wordgen_retest_rawdata.zip")}
+if(file.exists("Chpt4_fTCD_PPT_retest_rawdata.zip")){file.remove("Chpt4_fTCD_PPT_retest_rawdata.zip")}  

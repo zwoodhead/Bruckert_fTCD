@@ -19,8 +19,8 @@ require(osfr)
 
 osf_retrieve_file("https://osf.io/7vhaq") %>% osf_download(conflicts = "skip") # Chpt4_fTCD_wordgen_retest_rawdata.zip
 osf_retrieve_file("https://osf.io/728nk") %>% osf_download(conflicts = "skip") # Chpt4_fTCD_PPTT_retest_rawdata.zip
-unzip ("Chpt4_fTCD_wordgen_retest_rawdata.zip", exdir = "Chpt4_fTCD_WordGen_retestdata", overwrite = FALSE)
-unzip ("Chpt4_fTCD_PPT_retest_rawdata.zip", exdir = "Chpt4_fTCD_PPTT_retestdata", overwrite = FALSE)
+unzip ("Chpt4_fTCD_wordgen_retest_rawdata.zip", exdir = "Chpt4_fTCD_WordGen_retestdata/", overwrite = FALSE)
+unzip ("Chpt4_fTCD_PPT_retest_rawdata.zip", exdir = "Chpt4_fTCD_PPTT_retestdata/", overwrite = FALSE)
 
 ########################################################
 # Specify task
