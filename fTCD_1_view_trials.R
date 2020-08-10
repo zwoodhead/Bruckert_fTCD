@@ -6,7 +6,21 @@
 ########################################################
 # Install packages
 
-require(dplyr)
+list.of.packages <- c("tidyverse","osfr")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+
+require(tidyverse)
+require(osfr)
+
+########################################################
+# Load raw data from OSF
+# NB: it will not overwrite existing files
+
+osf_retrieve_file("https://osf.io/5kq42") %>% osf_download(conflicts = "skip") # Chpt4_fTCD_WordGen_rawdata.zip
+osf_retrieve_file("https://osf.io/6gn23") %>% osf_download(conflicts = "skip") # Chpt4_fTCD_PPTT_rawdata.zip
+unzip ("Chpt4_fTCD_WordGen_rawdata.zip", exdir = ".", overwrite = FALSE)
+unzip ("Chpt4_fTCD_PPTT_rawdata.zip", exdir = ".", overwrite = FALSE)
 
 ########################################################
 # Specify task
@@ -15,8 +29,8 @@ task <- 'WordGen'
 if (task_switch == 2){ task <- 'PPTT' }
 
 # Specify directory and other variable parameters
-rootdir <- "H:/github/DPhil_Chapter4_fTCD/"
-datadir <- paste0(rootdir,'Chpt4_fTCD_',task,'_rawdata/')
+rootdir <- getwd()
+datadir <- paste0(rootdir,'/Chpt4_fTCD_',task,'_rawdata/')
 
 datafiles <- list.files(datadir, pattern='*.exp')
 nfiles <- length(datafiles)
@@ -48,8 +62,10 @@ trialsperrun=23
 if (task_switch == 2)
   { trialsperrun = 15}
 
-# Read in existing inclusion data
-all_trials_inclusions <- read.csv(paste0(task,'_trial_inclusion.csv'))
+# Check if a trial inclusion file already exists, or if not, create a new one
+all_trials_inclusions <- as.data.frame(matrix(data = NA, nrow = trialsperrun, ncol = nfiles))
+if (file.exists(paste0(task,'_trial_inclusion.csv'))){
+  all_trials_inclusions <- read.csv(paste0(task,'_trial_inclusion.csv'))}
 colnames(all_trials_inclusions) <- datafiles
 
 ########################################################
