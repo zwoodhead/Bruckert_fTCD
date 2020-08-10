@@ -146,7 +146,7 @@ fTCD_dat_long$Hand <- as.factor(fTCD_dat_long$Hand)
 fTCD_dat_long$Task <- as.factor(fTCD_dat_long$Task)
 
 levels(fTCD_dat_long$Hand) <- c('Left', 'Right')
-levels(fTCD_dat_long$Task)<-c("Word Gen","Semantic")
+levels(fTCD_dat_long$Task)<-c("Semantic", "Word Gen")
 png(filename = 'Figure2.png')
 pirateplot(data=fTCD_dat_long, LI~Task*Hand, bean.f.col = c("orange1", "royalblue2"),ylab="Laterality Index (LI)")
 abline(h=0,lwd=2.5)
@@ -231,17 +231,6 @@ anova(mod1,mod2)
 
 # anova(mod1,mod3)
 
-#----------------------------------------------------------------------------------#
-
-#Hypothesis 3: Significant correlation between expressive and receptive task
-
-#Test with Pearson's correlation
-
-#Hypothesis 4: More variable relationship between expressive and receptive tasks in
-
-#left handers than right handers
-
-#Test by comparing variability of cook's distance between groups using Fligner-Killeen test
 
 #----------------------------------------------------------------------------------#
 # Figure 3: Density Plots
@@ -339,7 +328,7 @@ fTCD_handdat_long <- fTCD_dat_short %>% select(ID, hand_EHI_sum, hand_pref_bias)
 fTCD_dat_long2<-base::merge(fTCD_dat_long,fTCD_handdat_long,by=c("ID"))
 
 fTCD_dat_long2$Measure <- factor(fTCD_dat_long2$Measure, labels = c("Edinburgh Handedness Index", "Quantification of Hand Preference"))
-levels(fTCD_dat_long2$Task) <- c("Word Generation","Semantic Decision")
+levels(fTCD_dat_long2$Task) <- c("Semantic Decision", "Word Generation")
 
 #Plot Figure 5
 ggplot(fTCD_dat_long2,aes(y=Handedness,x=LI)) + 
