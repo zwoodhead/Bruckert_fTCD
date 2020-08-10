@@ -17,15 +17,13 @@
 
 #Check for required R packages and install if not on system
 
-list.of.packages <- c("nlme", "yarrr", "tidyverse", "stringr","reshape2","ggplot2", "ggpubr")
+list.of.packages <- c("nlme", "yarrr", "tidyverse","ggplot2", "ggpubr")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 
 library(nlme)
 library(yarrr)
 library(tidyverse)
-library(stringr)
-library(reshape2)
 library(ggplot2)
 library(ggpubr) 
 
