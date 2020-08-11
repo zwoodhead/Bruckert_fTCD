@@ -1,0 +1,124 @@
+---
+title: "Effects of Handedness on Consistency of Lateralisation: Analysis Readme File"
+author: "Zoe Woodhead"
+date: "10/08/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+This readme file describes how to replicate the analyses reported in the following paper:
+
+Bruckert, Thompson, Watkins, Bishop and Woodhead (2020). Investigating the effects of handedness on the consistency of lateralisation for speech production and semantic processing tasks using functional transcranial Doppler sonography. PsyArXiv.
+
+This study uses data acquired by Lisa Bruckert, which were written up as Chapter 4 in her DPhil thesis (Bruckert, 2016; https://ora.ox.ac.uk/objects/uuid:05e80d0d-8d0b-4cb2-8f94-22763603fab5).
+
+The analyses described here run in R Studios.
+
+The analysis process starts with the raw fTCD data and ends with the statistical tests and figures reported in the paper. The following scripts are available on OSF and should be run in sequence:
+
+* fTCD_1_view_trials.R: This script reads in raw fTCD data and allows you to check each trial for artifacts
+* fTCD_1A_RETEST_view_trials.R: As above, but for retest (second session) data
+* fTCD_2_extract_LI.R: This script calculates laterality indices (LIs), excluding trials were marked as artifacts in the first script
+* fTCD_2A_RETEST_extract_LI.R: As above, but for retest data
+* fTCD_3_outliers.R: Once LI values have been calculated for all data, this identifies outliers (where trial by trial SE is too high), which will be excluded in statistical analysis
+* fTCD_3A_RETEST_outliers.R: As above, but for retest data
+* fTCD_4_statistics.R: This script performs the statistical analysis and produces the figures and tables reported in the manuscript.
+
+The first two analysis scripts (fTCD_1_view_trials.R and fTCD_1A_RETEST_view_trials.R) require manually selecting which trials to include or exclude. If you want to replicate the results in the paper precisely, you should skip these two steps and allow the analysis instead to use the trial exclusions saved in OSF. 
+
+Each script will save the output to file. If you skip a step, the output file will not be present in your working directory, and the analysis will instead download the required file from OSF. Hence, you can just run whichever parts you're interested in replicating.
+
+
+## Before you begin
+
+I'd recommend creating a project in R Studios so that you can download the files to the project directory.
+
+Download all of the scripts you want to run and save them to your R project directory.
+
+
+## Step 1: Run fTCD_1_view_trials
+
+This step allows you to check each trial for artifacts. 
+
+To run this step, open R Studio in the project directory you created in Step 1. In the files pane, you should be able to see the script fTCD_1_view_trials.R that you downloaded in step 2. Run the following command (using copy and paste into the command line):
+
+```{r step1, eval=FALSE}
+source("fTCD_1_view_trials.R")
+
+```
+
+This script will first download the raw data from OSF, then it will ask you which task you want to analyse. Type 1 (for Word Generation) or 2 (Pyramids and Palm Trees) and press enter.
+
+It will then ask you which participants you want to analyse. You can do all or some participants at once. Enter which number you want to start and end with. There are 156 participants in total, so to run all you would start at 1 and end on 156 - but it would take a long time to check all trials!
+
+Next, do the same for the retest data (where some participants returned for a second session) by running fTCD_1A_RETEST_view_trials.R in the same way:
+
+```{r step1A, eval=FALSE}
+source("fTCD_1A_RETEST_view_trials.R")
+
+```
+
+For the restest data, there are 60 files for Word Generation, and 38 files for PPTT.
+
+The output of this step is a file that lists whether each trial should be included or excluded (e.g. WordGen_trial_inclusion.csv). 
+
+
+## Step 2: Run fTCD_2_extract_LI.R 
+
+This step calculates LI values (and other summary statistics) for all participants.
+
+The fTCD_2_extract_LI.R script will first download the raw data (if required) and the trial inclusion files, or if you ran step 3 it will use the ones you created. It will save the results into a results .csv file, e.g. WordGen_results.csv. The script also produces a plot for each subject and an analysed datafile (the grand mean time series).
+
+To run the script, enter the following command:
+
+```{r step2, eval=FALSE}
+source("fTCD_2_extract_LI.R")
+
+```
+
+You will be prompted to select the task you want to analyse (1=Word Generation; 2=Pyramids and Palm Trees). The script will update the results file and save it.
+
+Next, do the same for the retest data (where some participants returned for a second session) by running fTCD_2A_RETEST_view_trials.R in the same way:
+
+```{r step2A, eval=FALSE}
+source("fTCD_2A_RETEST_extract_LI.R")
+
+```
+
+## Step 3: Run fTCD_3_outliers.R
+
+This script identifies outliers that have to be excluded from the group analysis. Outliers are defined as having unusually high standard error on trial-by-trial LI values, indicating that their data is noisy. Also, participants can be excluded if they have too few usable trials on a task. 
+
+To run the script, enter the following command:
+
+```{r step3, eval=FALSE}
+source("fTCD_3_outliers.R")
+
+```
+
+You will be prompted to select the task you want to analyse (1=Word Generation; 2=Pyramids and Palm Trees). The script will update the results file and save it.
+
+Next, do the same for the retest data (where some participants returned for a second session) by running fTCD_3A_outliers.R in the same way:
+
+```{r step3A, eval=FALSE}
+source("fTCD_3A_outliers.R")
+
+```
+
+
+## Step 4: Run fTCD_4_statistics.R
+
+This script runs the statistical analyses reported in the manuscript, and creates the figures and tables. 
+
+To run the script, enter the following command:
+
+```{r step4, eval=FALSE}
+source("fTCD_4_statistics.R")
+```
+
+There is only one script for this step - retest data is analysed along with data from the first session. The results of the statistical tests will be printed in the console, or saved to variables in your working environment. You may find it easier to run the script step by step (by selecting lines and running them individually) to see which tests are being performed. Figures will be saved to the working directory as .png files.
