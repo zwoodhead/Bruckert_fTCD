@@ -7,8 +7,12 @@
 ########################################################
 # Install packages
 
-require(dplyr)
+list.of.packages <- c("tidyverse","osfr")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
 
+require(tidyverse)
+require(osfr)
 
 ########################################################
 # Specify task
@@ -21,14 +25,26 @@ if (task_switch == 2){
   mintrials <- 12} # Minimum trials is 12 for PPTT
   
 # Specify directory and other variable parameters
-rootdir <- "H:/github/DPhil_Chapter4_fTCD/"
-datadir <- paste0(rootdir,'Chpt4_fTCD_',task,'_rawdata/')
-resultsfile <- paste0(rootdir,task,"_results.csv") # File lists analysis results
+rootdir <- getwd()
+datadir <- paste0(rootdir,'/Chpt4_fTCD_',task,'_rawdata/')
+
+resultsfile <- paste0(rootdir,"/",task,"_results.csv") # File lists analysis results
 
 ########################################################
-# Read in LI data
+# Read in results file
 
-alldata <- read.csv(resultsfile) # Relevant columns: alldata$LI, alldata$nFinal, alldata$se
+# Read in results file from OSF if it's not present in working directory
+
+if (!file.exists(resultsfile)){
+  if (task_switch == 1){
+    osf_retrieve_file("https://osf.io/8msj5") %>% osf_download(conflicts = "skip") # WordGen_results.csv
+  }
+  if (task_switch == 2){
+    osf_retrieve_file("https://osf.io/jh37g") %>% osf_download(conflicts = "skip") # PPTT_results.csv
+  }
+}
+
+alldata <- read.csv(resultsfile)
 
 nsub <- dim(alldata)[1]
 
