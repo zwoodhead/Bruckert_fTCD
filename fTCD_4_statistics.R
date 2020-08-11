@@ -6,7 +6,7 @@
 #   Modified 27/11/2018.
 #   Syntax error fixed 11/12/2018
 #   Edited 09/04/2019 - adding figure 5 and other adjustments to plots.
-# 
+#   Edited 11/08/2020 - making compatible with OSF data
 #----------------------------------------------------------------------------------#
 
 #Following the example procedure described here: https://quantdev.ssri.psu.edu/sites/qdev/files/ILD_Ch06_2017_MLMwithHeterogeneousVariance.html
@@ -21,20 +21,32 @@ list.of.packages <- c("nlme", "yarrr", "tidyverse","ggplot2", "ggpubr")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 
-library(nlme)
-library(yarrr)
-library(tidyverse)
-library(ggplot2)
-library(ggpubr) 
+require(nlme)
+require(yarrr)
+require(tidyverse)
+require(ggplot2)
+require(ggpubr) 
 
 # Load in data
-rootdir <- "/Users/zoe/OneDrive - Nexus365/github/DPhil_Chapter4_fTCD/"
+rootdir <- getwd()
 
-wordgen <- read.csv(paste0(rootdir,'WordGen_results.csv'), stringsAsFactors=FALSE)
-pptt <- read.csv(paste0(rootdir,'PPTT_results.csv'), stringsAsFactors=FALSE)     
-demographics <- read.csv(paste0(rootdir,'Chpt4_fTCD_demographics.csv'), stringsAsFactors=FALSE)
-wordgen_retest <- read.csv(paste0(rootdir,'WordGen_RETEST_results.csv'), stringsAsFactors=FALSE)
-pptt_retest <- read.csv(paste0(rootdir,'PPTT_RETEST_results.csv'), stringsAsFactors=FALSE)
+WGfile <- paste0(rootdir,'/WordGen_results.csv')
+PPTTfile <- paste0(rootdir,'/PPTT_results.csv')
+demofile <- paste0(rootdir,'/Chpt4_fTCD_demographics.csv')
+WGretestfile <- paste0(rootdir,'/WordGen_RETEST_results.csv')
+PPTTretestfile <- paste0(rootdir,'/PPTT_RETEST_results.csv')
+
+if (!file.exists(WGfile)) {osf_retrieve_file("https://osf.io/8msj5") %>% osf_download(conflicts = "skip")} # WordGen_results.csv
+if (!file.exists(PPTTfile)) {osf_retrieve_file("https://osf.io/jh37g") %>% osf_download(conflicts = "skip")} # PPTT_results.csv
+if (!file.exists(demofile)) {osf_retrieve_file("https://osf.io/x93w4/") %>% osf_download(conflicts = "skip")} # Chpt4_fTCD_demographics.csv
+if (!file.exists(WGretestfile)) {osf_retrieve_file("https://osf.io/x4yts") %>% osf_download(conflicts = "skip")} # WordGen_RETEST_results.csv
+if (!file.exists(PPTTretestfile)) {osf_retrieve_file("https://osf.io/4j5uy") %>% osf_download(conflicts = "skip")} # PPTT_RETEST_results.csv
+
+wordgen <- read.csv(WGfile, stringsAsFactors=FALSE)
+pptt <- read.csv(PPTTfile, stringsAsFactors=FALSE)     
+demographics <- read.csv(demofile, stringsAsFactors=FALSE)
+wordgen_retest <- read.csv(WGretestfile, stringsAsFactors=FALSE)
+pptt_retest <- read.csv(PPTTretestfile, stringsAsFactors=FALSE)
 
 # Tidy data
 wordgen$ID<- substr(wordgen$Filename, start = 1, stop = 3)
@@ -276,6 +288,7 @@ fTCD_dat_short$cooks_ind <- as.factor(fTCD_dat_short$cooks_ind)
 
 fTCD_dat_short$hand_self_report <- as.factor(fTCD_dat_short$hand_self_report)
 levels(fTCD_dat_short$hand_self_report) <- c('Left', 'Right')
+
 ggplot(fTCD_dat_short, aes(y=PPTT.LI, x=WG.LI,colour=hand_self_report, shape=cooks_ind)) +
   geom_point(size=2,alpha=0.8) + theme_bw() + scale_color_manual(values=c("orange1", "royalblue2")) +
   labs(title="Laterality Indices") + ylab("Semantic Decision")+xlab("Word Generation") +
