@@ -90,9 +90,26 @@ cat(paste('Average age =', floor(age_mean), 'years and', round(12 *(age_mean - f
 # Hand 0=left, Hand 1=right
 table(fTCD_dat_short$sex,fTCD_dat_short$hand_self_report)
 
-# Count participants with retest data
+# Demographics of participants with retest data
+# WG retest
+age_mean_WG_retest <- mean(fTCD_dat_short$age[which(fTCD_dat_short$wordgen_retest == 1)])
+age_sd_WG_retest <- sd(fTCD_dat_short$age[which(fTCD_dat_short$wordgen_retest == 1)])
+
 cat(paste('\nWord Generation retest data was acquired from', sum(fTCD_dat_short$wordgen_retest), 'participants'))
+cat(paste('Average age =', floor(age_mean_WG_retest), 'years and', round(12 *(age_mean_WG_retest - floor(age_mean_WG_retest))), 'months\n', 
+          'SD =', floor(age_sd_WG_retest), 'years and', round(12 *(age_sd_WG_retest - floor(age_sd_WG_retest))), 'months.'))
+
+table(fTCD_dat_short$sex[which(fTCD_dat_short$wordgen_retest==1)],fTCD_dat_short$hand_self_report[which(fTCD_dat_short$wordgen_retest==1)])
+
+# PPTT retest
+age_mean_PPTT_retest <- mean(fTCD_dat_short$age[which(fTCD_dat_short$PPTT_retest == 1)])
+age_sd_PPTT_retest <- sd(fTCD_dat_short$age[which(fTCD_dat_short$PPTT_retest == 1)])
+
 cat(paste('\nSemantic Association retest data was acquired from', sum(fTCD_dat_short$PPTT_retest), 'participants'))
+cat(paste('Average age =', floor(age_mean_PPTT_retest), 'years and', round(12 *(age_mean_PPTT_retest - floor(age_mean_PPTT_retest))), 'months\n', 
+          'SD =', floor(age_sd_PPTT_retest), 'years and', round(12 *(age_sd_PPTT_retest - floor(age_sd_PPTT_retest))), 'months.'))
+
+table(fTCD_dat_short$sex[which(fTCD_dat_short$PPTT_retest==1)],fTCD_dat_short$hand_self_report[which(fTCD_dat_short$PPTT_retest==1)])
 
 #----------------------------------------------------------------------------------#
 # Data Quality
@@ -248,13 +265,13 @@ anova(mod1,mod2)
 # Word Generation
 p1 <- ggplot(fTCD_dat_long[fTCD_dat_long$Task=='Word Gen',], aes(x=LI, fill=Hand)) +
   geom_density(alpha=0.4) +
-  xlim(-3,6)+
+  xlim(-3,6) + ylim(0,0.3) +
   labs(title="Word Generation", x ="") + 
   theme_bw() + scale_fill_manual(values=c("orange1", "royalblue2"))
 # Semantic Association
 p2 <- ggplot(fTCD_dat_long[fTCD_dat_long$Task=='Semantic',], aes(x=LI, fill=Hand)) +
   geom_density(alpha=0.4)+
-  xlim(-3,6)+
+  xlim(-3,6) + ylim(0,0.3) +
   labs(title="Semantic Association",
        x ="Laterality index")  + 
   theme_bw() + scale_fill_manual(values=c("orange1", "royalblue2"))
