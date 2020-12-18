@@ -338,6 +338,7 @@ print(mytable)
 chisq.test(mytable) #v small sample for this, though it shows striking difference!
 
 
+
 #----------------------------------------------------------------------------------#
 # Exploratory analysis: continuous measures of handedness
 
@@ -370,3 +371,21 @@ ggsave(
   width = 5, height = 5,
   dpi = 300
 )
+
+#----------------------------------------------------------------------------------#
+# Exploratory analysis in response to Reviewer's comments: does LI vary more for 
+# semantic association than word generation?
+
+# This compares the model with homogenous variance (mod1) with a new model, with heterogenous
+# between-subjects variance for the two tasks (mod2B)
+
+mod2B<-lme(fixed=LI ~ 1 + Hand + Task, random=list(ID=pdDiag(form= ~ 0 + Task)),data=fTCD_dat_long,na.action="na.exclude",method="REML")
+
+summary(mod2B)
+
+VarCorr(mod2B)
+
+anova(mod1,mod2B)
+
+
+
