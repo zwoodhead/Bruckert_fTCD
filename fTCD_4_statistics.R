@@ -175,7 +175,7 @@ fTCD_dat_long$Task <- as.factor(fTCD_dat_long$Task)
 levels(fTCD_dat_long$Hand) <- c('Left', 'Right')
 levels(fTCD_dat_long$Task)<-c("Semantic", "Word Gen")
 tiff(filename = 'Figure2.tiff', res = 300, width =6, height = 6, units = 'in')
-pirateplot(data=fTCD_dat_long, LI~Task*Hand, bean.f.col = c("orange1", "royalblue2"),ylab="Laterality Index (LI)")
+pirateplot(data=fTCD_dat_long, LI~Task*Hand, bean.f.col = c("#F0E442", "royalblue2"),ylab="Laterality Index (LI)")
 abline(h=0,lwd=2.5)
 dev.off()
 
@@ -267,14 +267,14 @@ p1 <- ggplot(fTCD_dat_long[fTCD_dat_long$Task=='Word Gen',], aes(x=LI, fill=Hand
   geom_density(alpha=0.4) +
   xlim(-3,6) + ylim(0,0.3) +
   labs(title="Word Generation", x ="") + 
-  theme_bw() + scale_fill_manual(values=c("orange1", "royalblue2"))
+  theme_bw() + scale_fill_manual(values=c("#F0E442", "royalblue2"))
 # Semantic Association
 p2 <- ggplot(fTCD_dat_long[fTCD_dat_long$Task=='Semantic',], aes(x=LI, fill=Hand)) +
   geom_density(alpha=0.4)+
   xlim(-3,6) + ylim(0,0.3) +
   labs(title="Semantic Association",
        x ="Laterality index")  + 
-  theme_bw() + scale_fill_manual(values=c("orange1", "royalblue2"))
+  theme_bw() + scale_fill_manual(values=c("#F0E442", "royalblue2"))
 # Arrange into two panels
 ggarrange(p1,p2, ncol = 1, nrow = 2,common.legend=T,legend="bottom")
 # Save
@@ -307,7 +307,7 @@ fTCD_dat_short$hand_self_report <- as.factor(fTCD_dat_short$hand_self_report)
 levels(fTCD_dat_short$hand_self_report) <- c('Left', 'Right')
 
 ggplot(fTCD_dat_short, aes(y=PPTT.LI, x=WG.LI,colour=hand_self_report, shape=cooks_ind)) +
-  geom_point(size=2,alpha=0.8) + theme_bw() + scale_color_manual(values=c("orange1", "royalblue2")) +
+  geom_point(size=2,alpha=0.8) + theme_bw() + scale_color_manual(values=c("#F0E442", "royalblue2")) +
   labs(title="Laterality Indices") + ylab("Semantic Decision")+xlab("Word Generation") +
   geom_hline(yintercept = 0) + geom_vline(xintercept=0) + 
   guides(colour=guide_legend(title = "Handedness"),shape=guide_legend(title="Outlier"))
