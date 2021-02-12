@@ -174,7 +174,7 @@ fTCD_dat_long$Task <- as.factor(fTCD_dat_long$Task)
 
 levels(fTCD_dat_long$Hand) <- c('Left', 'Right')
 levels(fTCD_dat_long$Task)<-c("Semantic", "Word Gen")
-png(filename = 'Figure2.png')
+tiff(filename = 'Figure2.tiff', res = 300, width =6, height = 6, units = 'in')
 pirateplot(data=fTCD_dat_long, LI~Task*Hand, bean.f.col = c("orange1", "royalblue2"),ylab="Laterality Index (LI)")
 abline(h=0,lwd=2.5)
 dev.off()
@@ -279,7 +279,7 @@ p2 <- ggplot(fTCD_dat_long[fTCD_dat_long$Task=='Semantic',], aes(x=LI, fill=Hand
 ggarrange(p1,p2, ncol = 1, nrow = 2,common.legend=T,legend="bottom")
 # Save
 ggsave(
-  "Figure3.png",
+  "Figure3.tiff",
   width = 5, height = 8,
   dpi = 300
 )
@@ -313,7 +313,7 @@ ggplot(fTCD_dat_short, aes(y=PPTT.LI, x=WG.LI,colour=hand_self_report, shape=coo
   guides(colour=guide_legend(title = "Handedness"),shape=guide_legend(title="Outlier"))
 
 ggsave(
-  "Figure4.png",
+  "Figure4.tiff",
   width = 5, height = 4,
   dpi = 300
 )
@@ -367,7 +367,7 @@ ggplot(fTCD_dat_long2,aes(y=Handedness,x=LI)) +
   facet_grid(rows = vars(Measure), cols = vars(Task), scales="free",labeller= label_value)
 
 ggsave(
-  "Figure5.png",
+  "Figure5.tiff",
   width = 5, height = 5,
   dpi = 300
 )
